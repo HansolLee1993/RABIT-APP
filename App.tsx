@@ -5,126 +5,135 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useState, useRef} from 'react';
+import {SafeAreaView, StyleSheet, View, Modal, Text} from 'react-native';
 import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+} from 'react-native-vision-camera';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {CameraView} from './src/components/CameraView';
+import {PhotoPreview} from './src/components/PhotoPreview';
+import {MainButton} from './src/components/MainButton';
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const {hasPermission, requestPermission} = useCameraPermission();
+  const [showCamera, setShowCamera] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const device = useCameraDevice('back');
+  const camera = useRef<Camera>(null);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const takePicture = async () => {
+    try {
+      if (camera.current) {
+        const photo = await camera.current.takePhoto();
+        setPhoto(photo.path);
+      }
+    } catch (error) {
+      console.error('Error taking picture:', error);
+    }
   };
 
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the recommendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-  const safePadding = '5%';
+  const handleClose = () => {
+    setShowCamera(false);
+    setPhoto(null);
+  };
+
+  const handleImageUpload = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 1,
+      },
+      response => {
+        if (response.assets && response.assets[0]?.uri) {
+          setPhoto(response.assets[0].uri);
+          setShowCamera(true);
+        }
+      },
+    );
+  };
+
+  // Request permission if not granted
+  if (!hasPermission) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.permissionText}>
+          Camera permission is required to use this app
+        </Text>
+        <MainButton title="Grant Permission" onPress={requestPermission} />
+      </View>
+    );
+  }
+
+  // Show error if no camera device is found
+  if (!device) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.permissionText}>No camera device found</Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
-          <Header/>
+    <SafeAreaView style={styles.container}>
+      {/* Main Page */}
+      <View style={styles.mainPage}>
+        <View style={styles.buttonContainer}>
+          <MainButton title="Open Camera" onPress={() => setShowCamera(true)} />
+          <MainButton title="Upload Image" onPress={handleImageUpload} />
         </View>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
-            paddingBottom: safePadding,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+      </View>
+
+      {/* Camera Modal */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={showCamera}
+        onRequestClose={handleClose}>
+        <View style={styles.modalContainer}>
+          {photo ? (
+            <PhotoPreview
+              photoPath={photo}
+              onClose={handleClose}
+              onRetake={() => setPhoto(null)}
+            />
+          ) : (
+            <CameraView
+              camera={camera}
+              device={device}
+              onTakePicture={takePicture}
+            />
+          )}
         </View>
-      </ScrollView>
-    </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    flex: 1,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  mainPage: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'black',
   },
-  highlight: {
-    fontWeight: '700',
+  permissionText: {
+    textAlign: 'center',
+    margin: 20,
+    fontSize: 16,
+  },
+  buttonContainer: {
+    gap: 16,
+    alignItems: 'center',
   },
 });
 
