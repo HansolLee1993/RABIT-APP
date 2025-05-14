@@ -25,7 +25,6 @@ export const PhotoPreview: React.FC<PhotoPreviewProps> = ({
       </View>
     </View>
   );
-  
 };
 
 const styles = StyleSheet.create({
