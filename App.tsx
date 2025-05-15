@@ -6,13 +6,30 @@
  */
 
 import React from 'react';
-import {SafeAreaView, StyleSheet} from 'react-native';
-import {useCameraPermission} from 'react-native-vision-camera';
-import {MainScreen} from './src/screens/MainScreen';
-import {MainButton} from './src/components/MainButton';
+import { SafeAreaView, StyleSheet } from 'react-native';
+import { useCameraPermission } from 'react-native-vision-camera';
+import { MainScreen } from './src/screens/MainScreen';
+import { SearchResultsScreen } from './src/screens/SearchResultsScreen';
+import { MainButton } from './src/components/MainButton';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 function App(): React.JSX.Element {
-  const {hasPermission, requestPermission} = useCameraPermission();
+//  type RootStackParamList = {
+//     Search: undefined;
+//     SearchResults: {
+//       results: any[];
+//       searchCriteria: {
+//         model: string;
+//         color: string;
+//         yearFrom: string;
+//         yearTo: string;
+//       };
+//     };
+//   };
+
+  const { hasPermission, requestPermission } = useCameraPermission();
+  const Stack = createNativeStackNavigator();
 
   if (!hasPermission) {
     return (
@@ -24,7 +41,19 @@ function App(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MainScreen />
+      <NavigationContainer>
+        <Stack.Navigator
+          id = {undefined}
+          initialRouteName="MainScreen"
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="MainScreen" component={MainScreen} />
+          <Stack.Screen name="SearchResultsScreen" component={SearchResultsScreen} />
+        </Stack.Navigator>
+
+      </NavigationContainer>
     </SafeAreaView>
   );
 }
