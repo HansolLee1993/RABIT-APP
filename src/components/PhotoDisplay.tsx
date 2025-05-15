@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,21 +9,59 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 interface PhotoDisplayProps {
   photoUri: string | null;
 }
 
-export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({photoUri}) => {
+export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
   const [model, setModel] = useState('');
-  const [color, setColor] = useState('');
+  const [make, setMake] = useState('');
   const [yearFrom, setYearFrom] = useState('');
   const [yearTo, setYearTo] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSearch = () => {
-    // TODO: Implement search functionality
-    console.log('Searching with:', {model, color, yearFrom, yearTo});
+  const navigation = useNavigation();
+
+  const handleSearch = async () => {
+
+    try {
+      setIsLoading(true);
+
+      console.log('Searching with:', { model, make, yearFrom, yearTo });
+
+      // Make API call
+      const response = await fetch(`http://localhost:3002/search?`);
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      console.log('Search results:', data);
+      // Navigate to results screen with search results
+      //@ts-ignore
+      navigation.navigate('SearchResultsScreen', {
+        results: data,
+        searchCriteria: {
+          model,
+          make,
+          yearFrom,
+          yearTo
+        }
+      });
+    } catch (error) {
+      console.error('Error searching:', error);
+      // Alert.alert(
+      //   'Search Error',
+      //   'There was a problem with your search. Please try again later.'
+      // );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!photoUri) return null;
@@ -38,9 +76,18 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({photoUri}) => {
         <View style={styles.container}>
           <View style={styles.photoContainer}>
             <Image
-              source={{uri: `file://${photoUri}`}}
+              source={{ uri: `file://${photoUri}` }}
               style={styles.photoPreview}
               resizeMode="contain"
+            />
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Make:</Text>
+            <TextInput
+              style={styles.input}
+              value={make}
+              onChangeText={setMake}
+              placeholder="Enter car make"
             />
           </View>
           <View style={styles.infoRow}>
@@ -50,15 +97,6 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({photoUri}) => {
               value={model}
               onChangeText={setModel}
               placeholder="Enter car model"
-            />
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Color:</Text>
-            <TextInput
-              style={styles.input}
-              value={color}
-              onChangeText={setColor}
-              placeholder="Enter car color"
             />
           </View>
           <View style={styles.yearContainer}>
@@ -83,8 +121,12 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({photoUri}) => {
               />
             </View>
           </View>
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Text style={styles.searchButtonText}>Search</Text>
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch} disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.searchButtonText}>Search</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
