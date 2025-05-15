@@ -15,19 +15,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 function App(): React.JSX.Element {
-//  type RootStackParamList = {
-//     Search: undefined;
-//     SearchResults: {
-//       results: any[];
-//       searchCriteria: {
-//         model: string;
-//         color: string;
-//         yearFrom: string;
-//         yearTo: string;
-//       };
-//     };
-//   };
-
   const { hasPermission, requestPermission } = useCameraPermission();
   const Stack = createNativeStackNavigator();
 
