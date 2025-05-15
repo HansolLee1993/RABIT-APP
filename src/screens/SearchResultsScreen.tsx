@@ -14,16 +14,16 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 export const SearchResultsScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  
+
   // Extract results and search criteria from route params
   const { results = [], searchCriteria = {} } = route.params || {} as any;
-  
+
   // Handle case when no results are found
   if (!results || results.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
@@ -31,13 +31,13 @@ export const SearchResultsScreen: React.FC = () => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Search Results</Text>
         </View>
-        
+
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No results found</Text>
           <Text style={styles.emptySubText}>
             Try adjusting your search criteria
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.newSearchButton}
             onPress={() => navigation.goBack()}
           >
@@ -47,16 +47,16 @@ export const SearchResultsScreen: React.FC = () => {
       </SafeAreaView>
     );
   }
-  
+
   // Render individual car item
   const renderCarItem = ({ item }) => {
     return (
-      <TouchableOpacity 
+      <View
         style={styles.carItem}
       >
         {item.imageUrl ? (
-          <Image 
-            source={{ uri: item.imageUrl }} 
+          <Image
+            source={{ uri: item.imageUrl }}
             style={styles.carImage}
             resizeMode="cover"
           />
@@ -65,40 +65,25 @@ export const SearchResultsScreen: React.FC = () => {
             <Text style={styles.noImageText}>No Image</Text>
           </View>
         )}
-        
         <View style={styles.carInfo}>
           <Text style={styles.carTitle}>
             {item.year} {item.make} {item.model}
           </Text>
-          <Text style={styles.carSubtitle}>
-            Color: {item.color}
-          </Text>
-          {item.price && (
-            <Text style={styles.carPrice}>
-              ${item.price.toLocaleString()}
-            </Text>
-          )}
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
   // Render search criteria summary
   const renderSearchCriteriaSummary = () => {
     const criteria = [];
-    
+
+    if (searchCriteria.make) criteria.push(`Make: ${searchCriteria.make}`);
     if (searchCriteria.model) criteria.push(`Model: ${searchCriteria.model}`);
-    if (searchCriteria.color) criteria.push(`Color: ${searchCriteria.color}`);
-    if (searchCriteria.yearFrom && searchCriteria.yearTo) {
-      criteria.push(`Year: ${searchCriteria.yearFrom} - ${searchCriteria.yearTo}`);
-    } else if (searchCriteria.yearFrom) {
-      criteria.push(`Year: From ${searchCriteria.yearFrom}`);
-    } else if (searchCriteria.yearTo) {
-      criteria.push(`Year: To ${searchCriteria.yearTo}`);
-    }
-    
+    if (searchCriteria.year) criteria.push(`Year: ${searchCriteria.year}`);
+
     if (criteria.length === 0) return null;
-    
+
     return (
       <View style={styles.criteriaContainer}>
         <Text style={styles.criteriaTitle}>Search Criteria:</Text>
@@ -106,11 +91,11 @@ export const SearchResultsScreen: React.FC = () => {
       </View>
     );
   };
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
@@ -118,14 +103,14 @@ export const SearchResultsScreen: React.FC = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Search Results</Text>
       </View>
-      
+
       <View style={styles.resultsContainer}>
         {renderSearchCriteriaSummary()}
-        
+
         <Text style={styles.resultCount}>
           {results.length} {results.length === 1 ? 'result' : 'results'} found
         </Text>
-        
+
         <FlatList
           data={results}
           renderItem={renderCarItem}

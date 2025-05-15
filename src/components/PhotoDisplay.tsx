@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+//import { API_URL } from '@env';
 import {
   StyleSheet,
   View,
@@ -20,8 +21,7 @@ interface PhotoDisplayProps {
 export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
   const [model, setModel] = useState('');
   const [make, setMake] = useState('');
-  const [yearFrom, setYearFrom] = useState('');
-  const [yearTo, setYearTo] = useState('');
+  const [year, setYear] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const navigation = useNavigation();
@@ -31,10 +31,10 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
     try {
       setIsLoading(true);
 
-      console.log('Searching with:', { model, make, yearFrom, yearTo });
+      console.log('Searching with:', { model, make, year});
 
       // Make API call
-      const response = await fetch(`http://localhost:3002/search?`);
+      const response = await fetch(`http://localhost:3002/search?model=${model}&make=${make}&year=${year}`);
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -49,8 +49,7 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
         searchCriteria: {
           model,
           make,
-          yearFrom,
-          yearTo
+          year,
         }
       });
     } catch (error) {
@@ -104,18 +103,9 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
             <View style={styles.yearInputContainer}>
               <TextInput
                 style={[styles.input, styles.yearInput]}
-                value={yearFrom}
-                onChangeText={setYearFrom}
-                placeholder="From"
-                keyboardType="numeric"
-                maxLength={4}
-              />
-              <Text style={styles.yearSeparator}>-</Text>
-              <TextInput
-                style={[styles.input, styles.yearInput]}
-                value={yearTo}
-                onChangeText={setYearTo}
-                placeholder="To"
+                value={year}
+                onChangeText={setYear}
+                placeholder="Enter release year"
                 keyboardType="numeric"
                 maxLength={4}
               />
