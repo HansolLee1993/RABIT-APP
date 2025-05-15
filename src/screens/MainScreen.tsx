@@ -1,5 +1,12 @@
 import React, {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  SafeAreaView,
+  StatusBar,
+  Platform,
+} from 'react-native';
 import {MainButton} from '../components/MainButton';
 import {PhotoDisplay} from '../components/PhotoDisplay';
 import {CameraModal} from '../components/CameraModal';
@@ -29,32 +36,67 @@ export const MainScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.buttonContainer}>
-        <MainButton title="Open Camera" onPress={() => setShowCamera(true)} />
-        <MainButton title="Upload Image" onPress={handleImageUpload} />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor="#f5f5f5" barStyle="dark-content" />
+      <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          <View style={styles.brandContainer}>
+            <Text style={styles.brandName}>RABIT</Text>
+          </View>
+          <View style={styles.buttonContainer}>
+            <MainButton
+              title="Open Camera"
+              onPress={() => setShowCamera(true)}
+            />
+            <MainButton title="Upload Image" onPress={handleImageUpload} />
+          </View>
+          <PhotoDisplay photoUri={photo} />
+        </View>
+        <CameraModal
+          visible={showCamera}
+          onClose={() => setShowCamera(false)}
+          onPhotoCapture={handlePhotoCapture}
+        />
       </View>
-      <PhotoDisplay photoUri={photo} />
-      <CameraModal
-        visible={showCamera}
-        onClose={() => setShowCamera(false)}
-        onPhotoCapture={handlePhotoCapture}
-      />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
+  },
+  contentContainer: {
+    flex: 1,
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    paddingTop: 50,
+    paddingTop: 20,
+  },
+  brandContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'android' ? 60 : 30,
+    paddingBottom: 30,
+    marginBottom: 20,
+  },
+  brandName: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#2196F3',
+    letterSpacing: 6,
+    textShadowColor: 'rgba(33,150,243,0.3)',
+    textShadowOffset: {width: 0, height: 2},
+    textShadowRadius: 4,
   },
   buttonContainer: {
-    gap: 16,
-    alignItems: 'center',
-    marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 24,
+    marginBottom: 30,
+    paddingHorizontal: 30,
+    width: '100%',
   },
 });

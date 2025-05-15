@@ -17,9 +17,10 @@ export const MainButton: React.FC<MainButtonProps> = ({onPress, title}) => {
 const styles = StyleSheet.create({
   mainButton: {
     backgroundColor: '#2196F3',
-    padding: 20,
+    padding: 15,
     borderRadius: 15,
     elevation: 3,
+    minWidth: 130,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
