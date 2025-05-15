@@ -35,6 +35,10 @@ export const MainScreen: React.FC = () => {
     setShowCamera(false);
   };
 
+  const handleClear = () => {
+    setPhoto(null);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#f5f5f5" barStyle="dark-content" />
@@ -49,6 +53,13 @@ export const MainScreen: React.FC = () => {
               onPress={() => setShowCamera(true)}
             />
             <MainButton title="Upload Image" onPress={handleImageUpload} />
+            {photo && (
+              <MainButton
+                title="Clear"
+                onPress={handleClear}
+                style={styles.clearButton}
+              />
+            )}
           </View>
           <PhotoDisplay photoUri={photo} />
         </View>
@@ -94,9 +105,13 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 24,
+    gap: 12,
     marginBottom: 30,
-    paddingHorizontal: 30,
+    paddingHorizontal: 16,
     width: '100%',
+  },
+  clearButton: {
+    backgroundColor: '#ff4444',
+    minWidth: 100,
   },
 });

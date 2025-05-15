@@ -1,14 +1,25 @@
 import React from 'react';
-import {StyleSheet, TouchableOpacity, Text} from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 
 interface MainButtonProps {
   onPress: () => void;
   title: string;
+  style?: StyleProp<ViewStyle>;
 }
 
-export const MainButton: React.FC<MainButtonProps> = ({onPress, title}) => {
+export const MainButton: React.FC<MainButtonProps> = ({
+  onPress,
+  title,
+  style,
+}) => {
   return (
-    <TouchableOpacity style={styles.mainButton} onPress={onPress}>
+    <TouchableOpacity style={[styles.mainButton, style]} onPress={onPress}>
       <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
   );
@@ -17,10 +28,10 @@ export const MainButton: React.FC<MainButtonProps> = ({onPress, title}) => {
 const styles = StyleSheet.create({
   mainButton: {
     backgroundColor: '#2196F3',
-    padding: 15,
-    borderRadius: 15,
+    padding: 12,
+    borderRadius: 12,
     elevation: 3,
-    minWidth: 130,
+    minWidth: 110,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -31,7 +42,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
     textAlign: 'center',
   },

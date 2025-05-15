@@ -18,11 +18,12 @@ interface PhotoDisplayProps {
 export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({photoUri}) => {
   const [model, setModel] = useState('');
   const [color, setColor] = useState('');
-  const [year, setYear] = useState('');
+  const [yearFrom, setYearFrom] = useState('');
+  const [yearTo, setYearTo] = useState('');
 
   const handleSearch = () => {
     // TODO: Implement search functionality
-    console.log('Searching with:', {model, color, year});
+    console.log('Searching with:', {model, color, yearFrom, yearTo});
   };
 
   if (!photoUri) return null;
@@ -42,41 +43,49 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({photoUri}) => {
               resizeMode="contain"
             />
           </View>
-          <View style={styles.infoContainer}>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Model:</Text>
-              <TextInput
-                style={styles.input}
-                value={model}
-                onChangeText={setModel}
-                placeholder="Enter car model"
-              />
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Color:</Text>
-              <TextInput
-                style={styles.input}
-                value={color}
-                onChangeText={setColor}
-                placeholder="Enter car color"
-              />
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Year:</Text>
-              <TextInput
-                style={styles.input}
-                value={year}
-                onChangeText={setYear}
-                placeholder="Enter car year"
-                keyboardType="numeric"
-              />
-            </View>
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={handleSearch}>
-              <Text style={styles.searchButtonText}>Search</Text>
-            </TouchableOpacity>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Model:</Text>
+            <TextInput
+              style={styles.input}
+              value={model}
+              onChangeText={setModel}
+              placeholder="Enter car model"
+            />
           </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Color:</Text>
+            <TextInput
+              style={styles.input}
+              value={color}
+              onChangeText={setColor}
+              placeholder="Enter car color"
+            />
+          </View>
+          <View style={styles.yearContainer}>
+            <Text style={styles.label}>Year:</Text>
+            <View style={styles.yearInputContainer}>
+              <TextInput
+                style={[styles.input, styles.yearInput]}
+                value={yearFrom}
+                onChangeText={setYearFrom}
+                placeholder="From"
+                keyboardType="numeric"
+                maxLength={4}
+              />
+              <Text style={styles.yearSeparator}>-</Text>
+              <TextInput
+                style={[styles.input, styles.yearInput]}
+                value={yearTo}
+                onChangeText={setYearTo}
+                placeholder="To"
+                keyboardType="numeric"
+                maxLength={4}
+              />
+            </View>
+          </View>
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <Text style={styles.searchButtonText}>Search</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -110,17 +119,37 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  infoContainer: {
-    width: '100%',
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    elevation: 5,
-  },
   infoRow: {
     flexDirection: 'row',
     marginBottom: 12,
     alignItems: 'center',
+    width: '100%',
+  },
+  yearContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    alignItems: 'center',
+    width: '100%',
+  },
+  yearInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  yearInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  yearSeparator: {
+    marginHorizontal: 8,
+    fontSize: 16,
+    color: '#666',
   },
   label: {
     fontSize: 16,
@@ -144,6 +173,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     marginTop: 16,
+    width: '100%',
     alignItems: 'center',
   },
   searchButtonText: {
