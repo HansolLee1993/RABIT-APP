@@ -22,35 +22,38 @@ export const CameraView: React.FC<CameraViewProps> = ({
   }
 
   return (
-    <Camera
-      ref={camera}
-      style={styles.camera}
-      device={device}
-      isActive={true}
-      photo={true}>
+    <View style={styles.container}>
+      <Camera
+        ref={camera}
+        style={styles.camera}
+        device={device}
+        isActive={true}
+        photo={true}
+      />
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={onTakePicture}>
           <Text style={styles.buttonText}>Take Photo</Text>
         </TouchableOpacity>
       </View>
-    </Camera>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: 'relative',
   },
   camera: {
     flex: 1,
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 20,
-    width: '100%',
+    bottom: 30,
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 2,
   },
   button: {
     backgroundColor: '#2196F3',

@@ -19,6 +19,7 @@ interface PhotoDisplayProps {
   make: string;
   model: string;
   year: string;
+  error?: string | null;
   onMakeChange: (value: string) => void;
   onModelChange: (value: string) => void;
   onYearChange: (value: string) => void;
@@ -30,6 +31,7 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({
   make,
   model,
   year,
+  error,
   onMakeChange,
   onModelChange,
   onYearChange,
@@ -67,10 +69,6 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({
       });
     } catch (error) {
       console.error('Error searching:', error);
-      // Alert.alert(
-      //   'Search Error',
-      //   'There was a problem with your search. Please try again later.'
-      // );
     } finally {
       setIsSearching(false);
     }
@@ -104,53 +102,61 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({
               </View>
             )}
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Make:</Text>
-            <TextInput
-              style={styles.input}
-              value={make}
-              onChangeText={onMakeChange}
-              placeholder="Enter car make"
-              editable={!isLoading}
-            />
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Model:</Text>
-            <TextInput
-              style={styles.input}
-              value={model}
-              onChangeText={onModelChange}
-              placeholder="Enter car model"
-              editable={!isLoading}
-            />
-          </View>
-          <View style={styles.yearContainer}>
-            <Text style={styles.label}>Year:</Text>
-            <View style={styles.yearInputContainer}>
-              <TextInput
-                style={[styles.input, styles.yearInput]}
-                value={year}
-                onChangeText={onYearChange}
-                placeholder="Enter release year"
-                keyboardType="numeric"
-                maxLength={4}
-                editable={!isLoading}
-              />
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
             </View>
-          </View>
-          <TouchableOpacity
-            style={[
-              styles.searchButton,
-              (isLoading || isSearching) && styles.disabledButton,
-            ]}
-            onPress={handleSearch}
-            disabled={isLoading || isSearching}>
-            {isSearching ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.searchButtonText}>Search</Text>
-            )}
-          </TouchableOpacity>
+          ) : (
+            <>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Make:</Text>
+                <TextInput
+                  style={styles.input}
+                  value={make}
+                  onChangeText={onMakeChange}
+                  placeholder="Enter car make"
+                  editable={!isLoading}
+                />
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Model:</Text>
+                <TextInput
+                  style={styles.input}
+                  value={model}
+                  onChangeText={onModelChange}
+                  placeholder="Enter car model"
+                  editable={!isLoading}
+                />
+              </View>
+              <View style={styles.yearContainer}>
+                <Text style={styles.label}>Year:</Text>
+                <View style={styles.yearInputContainer}>
+                  <TextInput
+                    style={[styles.input, styles.yearInput]}
+                    value={year}
+                    onChangeText={onYearChange}
+                    placeholder="Enter release year"
+                    keyboardType="numeric"
+                    maxLength={4}
+                    editable={!isLoading}
+                  />
+                </View>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.searchButton,
+                  (isLoading || isSearching) && styles.disabledButton,
+                ]}
+                onPress={handleSearch}
+                disabled={isLoading || isSearching}>
+                {isSearching ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.searchButtonText}>Search</Text>
+                )}
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -193,6 +199,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  errorContainer: {
+    width: '100%',
+    padding: 16,
+    backgroundColor: '#ffebee',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 16,
+    textAlign: 'center',
   },
   infoRow: {
     flexDirection: 'row',

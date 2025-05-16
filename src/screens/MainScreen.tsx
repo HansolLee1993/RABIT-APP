@@ -12,20 +12,22 @@ import {MainButton} from '../components/MainButton';
 import {PhotoDisplay} from '../components/PhotoDisplay';
 import {CameraModal} from '../components/CameraModal';
 import {uploadImage} from '../utils/uploadImage';
+import {CarFormManager, type CarFormData} from '../utils/carFormManager';
+import {ImageAnalyzer} from '../utils/imageAnalyzer';
 
 export const MainScreen: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    make: '',
-    model: '',
-    year: '',
-  });
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<CarFormData>(
+    CarFormManager.resetForm(),
+  );
 
   const handleImageUpload = async () => {
     console.log('handleImageUpload started');
     setIsUploading(true);
+    setError(null);
 
     try {
       const result = await uploadImage();
@@ -34,43 +36,65 @@ export const MainScreen: React.FC = () => {
         console.log('Upload successful, setting photo URI:', result.uri);
         setPhoto(result.uri);
         if (result.data) {
-          const {make, model, year} = result.data;
-          console.log(`Make: ${make}, Model: ${model}, Year: ${year}`);
-          setFormData({
-            make: make || '',
-            model: model || '',
-            year: year || '',
-          });
+          if (CarFormManager.isEmptyResult(result.data)) {
+            setError(
+              "No match detected—but hey, maybe it's a concept car from the future? Try again",
+            );
+          } else {
+            console.log(
+              `Make: ${result.data.make}, Model: ${result.data.model}, Year: ${result.data.year}`,
+            );
+            setFormData(CarFormManager.createFormDataFromResult(result.data));
+          }
+        } else {
+          setError(
+            "No match detected—but hey, maybe it's a concept car from the future? Try again",
+          );
         }
       } else {
         console.warn('Upload failed:', result.error);
+        setError(
+          "No match detected—but hey, maybe it's a concept car from the future? Try again",
+        );
       }
     } catch (error) {
       console.error('Upload error:', error);
+      setError(
+        "No match detected—but hey, maybe it's a concept car from the future? Try again",
+      );
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handlePhotoCapture = (photoPath: string) => {
+  const handlePhotoCapture = async (photoPath: string) => {
     setPhoto(photoPath);
     setShowCamera(false);
+    setError(null);
+    setIsUploading(true);
+
+    try {
+      const result = await ImageAnalyzer.analyze(photoPath);
+      if (result.success && result.result) {
+        setFormData(CarFormManager.createFormDataFromResult(result.result));
+      } else {
+        setError(result.error || 'An error occurred during analysis');
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFormChange = (field: keyof CarFormData, value: string) => {
+    setFormData(currentData =>
+      CarFormManager.updateField(currentData, field, value),
+    );
   };
 
   const handleClear = () => {
     setPhoto(null);
-    setFormData({
-      make: '',
-      model: '',
-      year: '',
-    });
-  };
-
-  const handleFormChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    setError(null);
+    setFormData(CarFormManager.resetForm());
   };
 
   return (
@@ -112,6 +136,7 @@ export const MainScreen: React.FC = () => {
             make={formData.make}
             model={formData.model}
             year={formData.year}
+            error={error}
             onMakeChange={value => handleFormChange('make', value)}
             onModelChange={value => handleFormChange('model', value)}
             onYearChange={value => handleFormChange('year', value)}
