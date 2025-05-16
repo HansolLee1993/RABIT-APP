@@ -50,15 +50,20 @@ export const SearchResultsScreen: React.FC = () => {
   // Extract results and search criteria from route params
   const {results = [], searchCriteria = {}} = route.params || ({} as any);
 
+  // Render search criteria summary
   const renderSearchCriteriaSummary = () => {
+    const criteria = [];
+
+    if (searchCriteria.make) criteria.push(`Make: ${searchCriteria.make}`);
+    if (searchCriteria.model) criteria.push(`Model: ${searchCriteria.model}`);
+    if (searchCriteria.year) criteria.push(`Year: ${searchCriteria.year}`);
+
+    if (criteria.length === 0) return null;
+
     return (
       <View style={styles.criteriaContainer}>
-        <Text style={styles.criteriaTitle}>Search Criteria</Text>
-        <Text style={styles.criteriaText}>
-          {searchCriteria.make && `Make: ${searchCriteria.make}`}
-          {searchCriteria.model && `, Model: ${searchCriteria.model}`}
-          {searchCriteria.year && `, Year: ${searchCriteria.year}`}
-        </Text>
+        <Text style={styles.criteriaTitle}>Search Criteria:</Text>
+        <Text style={styles.criteriaText}>{criteria.join(', ')}</Text>
       </View>
     );
   };
