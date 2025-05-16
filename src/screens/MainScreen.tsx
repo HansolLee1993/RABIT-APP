@@ -15,6 +15,9 @@ import {uploadImage} from '../utils/uploadImage';
 import {CarFormManager, type CarFormData} from '../utils/carFormManager';
 import {ImageAnalyzer} from '../utils/imageAnalyzer';
 
+const NO_MATCH_ERROR =
+  "No match detected—but hey, maybe it's a concept car from the future? Try again";
+
 export const MainScreen: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -37,9 +40,7 @@ export const MainScreen: React.FC = () => {
         setPhoto(result.uri);
         if (result.data) {
           if (CarFormManager.isEmptyResult(result.data)) {
-            setError(
-              "No match detected—but hey, maybe it's a concept car from the future? Try again",
-            );
+            setError(NO_MATCH_ERROR);
           } else {
             console.log(
               `Make: ${result.data.make}, Model: ${result.data.model}, Year: ${result.data.year}`,
@@ -47,21 +48,15 @@ export const MainScreen: React.FC = () => {
             setFormData(CarFormManager.createFormDataFromResult(result.data));
           }
         } else {
-          setError(
-            "No match detected—but hey, maybe it's a concept car from the future? Try again",
-          );
+          setError(NO_MATCH_ERROR);
         }
       } else {
         console.warn('Upload failed:', result.error);
-        setError(
-          "No match detected—but hey, maybe it's a concept car from the future? Try again",
-        );
+        setError(NO_MATCH_ERROR);
       }
-    } catch (error) {
-      console.error('Upload error:', error);
-      setError(
-        "No match detected—but hey, maybe it's a concept car from the future? Try again",
-      );
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError(NO_MATCH_ERROR);
     } finally {
       setIsUploading(false);
     }
@@ -74,11 +69,12 @@ export const MainScreen: React.FC = () => {
     setIsUploading(true);
 
     try {
-      const result = await ImageAnalyzer.analyze(photoPath);
+      const result = await ImageAnalyzer.analyzeFromCamera(photoPath);
       if (result.success && result.result) {
         setFormData(CarFormManager.createFormDataFromResult(result.result));
       } else {
-        setError(result.error || 'An error occurred during analysis');
+        setError(result.error || NO_MATCH_ERROR);
+        setFormData(CarFormManager.resetForm());
       }
     } finally {
       setIsUploading(false);
@@ -108,12 +104,18 @@ export const MainScreen: React.FC = () => {
           <View style={styles.buttonContainer}>
             <MainButton
               title="Open Camera"
-              onPress={() => setShowCamera(true)}
+              onPress={() => {
+                setFormData(CarFormManager.resetForm());
+                setShowCamera(true);
+              }}
               disabled={isUploading}
             />
             <MainButton
               title={isUploading ? 'Uploading...' : 'Upload Image'}
-              onPress={handleImageUpload}
+              onPress={async () => {
+                setFormData(CarFormManager.resetForm());
+                await handleImageUpload();
+              }}
               disabled={isUploading}
             />
             {photo && (

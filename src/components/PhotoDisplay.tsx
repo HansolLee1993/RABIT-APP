@@ -1,5 +1,4 @@
 import React from 'react';
-//import { API_URL } from '@env';
 import {
   StyleSheet,
   View,
@@ -13,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {API_ENDPOINTS} from '../config/env';
 
 interface PhotoDisplayProps {
   photoUri: string | null;
@@ -46,7 +46,7 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({
 
       console.log('Searching with:', {model, make, year});
 
-      const searchUrl = `http://10.0.2.2:3000/api/search?Model=${model}&Make=${make}&Year=${year}`;
+      const searchUrl = `${API_ENDPOINTS.SEARCH}?Model=${model}&Make=${make}&Year=${year}`;
       console.log('Search URL:', searchUrl);
 
       const response = await fetch(searchUrl);

@@ -1,4 +1,5 @@
 import {launchImageLibrary} from 'react-native-image-picker';
+import {API_ENDPOINTS} from '../config/env';
 
 export const uploadImage = async (): Promise<{
   success: boolean;
@@ -40,7 +41,7 @@ export const uploadImage = async (): Promise<{
         });
 
         try {
-          const res = await fetch('http://10.0.2.2:3000/api/claude', {
+          const res = await fetch(API_ENDPOINTS.CLAUDE, {
             method: 'POST',
             body: formData,
           });
