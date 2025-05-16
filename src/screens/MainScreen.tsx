@@ -10,24 +10,41 @@ import {
 import {MainButton} from '../components/MainButton';
 import {PhotoDisplay} from '../components/PhotoDisplay';
 import {CameraModal} from '../components/CameraModal';
-import {launchImageLibrary} from 'react-native-image-picker';
+import {uploadImage} from '../utils/uploadImage';
 
 export const MainScreen: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    make: '',
+    model: '',
+    year: '',
+  });
 
-  const handleImageUpload = () => {
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 1,
-      },
-      response => {
-        if (response.assets && response.assets[0]?.uri) {
-          setPhoto(response.assets[0].uri);
+  const handleImageUpload = async () => {
+    console.log('handleImageUpload started');
+
+    try {
+      const result = await uploadImage();
+
+      if (result.success && result.uri) {
+        console.log('Upload successful, setting photo URI:', result.uri);
+        setPhoto(result.uri);
+        if (result.data) {
+          const {make, model, year} = result.data;
+          console.log(`Make: ${make}, Model: ${model}, Year: ${year}`);
+          setFormData({
+            make: make || '',
+            model: model || '',
+            year: year || '',
+          });
         }
-      },
-    );
+      } else {
+        console.warn('Upload failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+    }
   };
 
   const handlePhotoCapture = (photoPath: string) => {
@@ -37,6 +54,18 @@ export const MainScreen: React.FC = () => {
 
   const handleClear = () => {
     setPhoto(null);
+    setFormData({
+      make: '',
+      model: '',
+      year: '',
+    });
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   return (
@@ -61,7 +90,15 @@ export const MainScreen: React.FC = () => {
               />
             )}
           </View>
-          <PhotoDisplay photoUri={photo} />
+          <PhotoDisplay
+            photoUri={photo}
+            make={formData.make}
+            model={formData.model}
+            year={formData.year}
+            onMakeChange={value => handleFormChange('make', value)}
+            onModelChange={value => handleFormChange('model', value)}
+            onYearChange={value => handleFormChange('year', value)}
+          />
         </View>
         <CameraModal
           visible={showCamera}

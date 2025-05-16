@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 //import { API_URL } from '@env';
 import {
   StyleSheet,
@@ -12,29 +12,40 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 interface PhotoDisplayProps {
   photoUri: string | null;
+  make: string;
+  model: string;
+  year: string;
+  onMakeChange: (value: string) => void;
+  onModelChange: (value: string) => void;
+  onYearChange: (value: string) => void;
 }
 
-export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
-  const [model, setModel] = useState('');
-  const [make, setMake] = useState('');
-  const [year, setYear] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
+export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({
+  photoUri,
+  make,
+  model,
+  year,
+  onMakeChange,
+  onModelChange,
+  onYearChange,
+}) => {
+  const [isLoading, setIsLoading] = React.useState(false);
   const navigation = useNavigation();
 
   const handleSearch = async () => {
-
     try {
       setIsLoading(true);
 
-      console.log('Searching with:', { model, make, year});
+      console.log('Searching with:', {model, make, year});
 
       // Make API call
-      const response = await fetch(`http://localhost:3002/search?model=${model}&make=${make}&year=${year}`);
+      const response = await fetch(
+        `http://localhost:3000/search?model=${model}&make=${make}&year=${year}`,
+      );
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -50,7 +61,7 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
           model,
           make,
           year,
-        }
+        },
       });
     } catch (error) {
       console.error('Error searching:', error);
@@ -65,6 +76,12 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
 
   if (!photoUri) return null;
 
+  // Handle the photo URI based on platform
+  const imageUri = Platform.select({
+    ios: photoUri,
+    android: photoUri.startsWith('file://') ? photoUri : `file://${photoUri}`,
+  });
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -75,7 +92,7 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
         <View style={styles.container}>
           <View style={styles.photoContainer}>
             <Image
-              source={{ uri: `file://${photoUri}` }}
+              source={{uri: imageUri}}
               style={styles.photoPreview}
               resizeMode="contain"
             />
@@ -85,7 +102,7 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
             <TextInput
               style={styles.input}
               value={make}
-              onChangeText={setMake}
+              onChangeText={onMakeChange}
               placeholder="Enter car make"
             />
           </View>
@@ -94,7 +111,7 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
             <TextInput
               style={styles.input}
               value={model}
-              onChangeText={setModel}
+              onChangeText={onModelChange}
               placeholder="Enter car model"
             />
           </View>
@@ -104,14 +121,17 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
               <TextInput
                 style={[styles.input, styles.yearInput]}
                 value={year}
-                onChangeText={setYear}
+                onChangeText={onYearChange}
                 placeholder="Enter release year"
                 keyboardType="numeric"
                 maxLength={4}
               />
             </View>
           </View>
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch} disabled={isLoading}>
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={handleSearch}
+            disabled={isLoading}>
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (

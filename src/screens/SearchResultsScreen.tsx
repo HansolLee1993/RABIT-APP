@@ -7,16 +7,16 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView
+  SafeAreaView,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 export const SearchResultsScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
   // Extract results and search criteria from route params
-  const { results = [], searchCriteria = {} } = route.params || {} as any;
+  const {results = [], searchCriteria = {}} = route.params || ({} as any);
 
   // Handle case when no results are found
   if (!results || results.length === 0) {
@@ -25,8 +25,7 @@ export const SearchResultsScreen: React.FC = () => {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
+            onPress={() => navigation.goBack()}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Search Results</Text>
@@ -39,40 +38,13 @@ export const SearchResultsScreen: React.FC = () => {
           </Text>
           <TouchableOpacity
             style={styles.newSearchButton}
-            onPress={() => navigation.goBack()}
-          >
+            onPress={() => navigation.goBack()}>
             <Text style={styles.newSearchButtonText}>New Search</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
-
-  // Render individual car item
-  const renderCarItem = ({ item }) => {
-    return (
-      <View
-        style={styles.carItem}
-      >
-        {item.imageUrl ? (
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={styles.carImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.noImageContainer}>
-            <Text style={styles.noImageText}>No Image</Text>
-          </View>
-        )}
-        <View style={styles.carInfo}>
-          <Text style={styles.carTitle}>
-            {item.year} {item.make} {item.model}
-          </Text>
-        </View>
-      </View>
-    );
-  };
 
   // Render search criteria summary
   const renderSearchCriteriaSummary = () => {
@@ -97,8 +69,7 @@ export const SearchResultsScreen: React.FC = () => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+          onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Search Results</Text>
@@ -113,7 +84,29 @@ export const SearchResultsScreen: React.FC = () => {
 
         <FlatList
           data={results}
-          renderItem={renderCarItem}
+          renderItem={({item}) => {
+            if (!item) return null;
+            return (
+              <View style={styles.carItem}>
+                {item.imageUrl ? (
+                  <Image
+                    source={{uri: item.imageUrl}}
+                    style={styles.carImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.noImageContainer}>
+                    <Text style={styles.noImageText}>No Image</Text>
+                  </View>
+                )}
+                <View style={styles.carInfo}>
+                  <Text style={styles.carTitle}>
+                    {item.year ?? ''} {item.make ?? ''} {item.model ?? ''}
+                  </Text>
+                </View>
+              </View>
+            );
+          }}
           // keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
@@ -252,4 +245,3 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
-
