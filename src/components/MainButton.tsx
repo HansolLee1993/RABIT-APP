@@ -11,16 +11,23 @@ interface MainButtonProps {
   onPress: () => void;
   title: string;
   style?: StyleProp<ViewStyle>;
+  disabled?: boolean;
 }
 
 export const MainButton: React.FC<MainButtonProps> = ({
   onPress,
   title,
   style,
+  disabled = false,
 }) => {
   return (
-    <TouchableOpacity style={[styles.mainButton, style]} onPress={onPress}>
-      <Text style={styles.buttonText}>{title}</Text>
+    <TouchableOpacity
+      style={[styles.mainButton, style, disabled && styles.disabledButton]}
+      onPress={onPress}
+      disabled={disabled}>
+      <Text style={[styles.buttonText, disabled && styles.disabledText]}>
+        {title}
+      </Text>
     </TouchableOpacity>
   );
 };
@@ -28,22 +35,20 @@ export const MainButton: React.FC<MainButtonProps> = ({
 const styles = StyleSheet.create({
   mainButton: {
     backgroundColor: '#2196F3',
-    padding: 12,
-    borderRadius: 12,
-    elevation: 3,
-    minWidth: 110,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    padding: 15,
+    borderRadius: 8,
+    minWidth: 120,
+    alignItems: 'center',
   },
   buttonText: {
     color: 'white',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: 'bold',
-    textAlign: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#cccccc',
+  },
+  disabledText: {
+    color: '#666666',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 //import { API_URL } from '@env';
 import {
   StyleSheet,
@@ -12,45 +12,58 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 interface PhotoDisplayProps {
   photoUri: string | null;
+  make: string;
+  model: string;
+  year: string;
+  onMakeChange: (value: string) => void;
+  onModelChange: (value: string) => void;
+  onYearChange: (value: string) => void;
+  isLoading?: boolean;
 }
 
-export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
-  const [model, setModel] = useState('');
-  const [make, setMake] = useState('');
-  const [year, setYear] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
+export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({
+  photoUri,
+  make,
+  model,
+  year,
+  onMakeChange,
+  onModelChange,
+  onYearChange,
+  isLoading = false,
+}) => {
+  const [isSearching, setIsSearching] = React.useState(false);
   const navigation = useNavigation();
 
   const handleSearch = async () => {
-
     try {
-      setIsLoading(true);
+      setIsSearching(true);
 
-      console.log('Searching with:', { model, make, year});
+      console.log('Searching with:', {model, make, year});
 
-      // Make API call
-      const response = await fetch(`http://localhost:3002/search?model=${model}&make=${make}&year=${year}`);
+      const searchUrl = `http://10.0.2.2:3000/api/search?Model=${model}&Make=${make}&Year=${year}`;
+      console.log('Search URL:', searchUrl);
 
+      const response = await fetch(searchUrl);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
 
       const data = await response.json();
       console.log('Search results:', data);
+
       // Navigate to results screen with search results
       //@ts-ignore
       navigation.navigate('SearchResultsScreen', {
-        results: data,
+        results: Array.isArray(data) ? data : [data],
         searchCriteria: {
           model,
           make,
           year,
-        }
+        },
       });
     } catch (error) {
       console.error('Error searching:', error);
@@ -59,11 +72,17 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
       //   'There was a problem with your search. Please try again later.'
       // );
     } finally {
-      setIsLoading(false);
+      setIsSearching(false);
     }
   };
 
   if (!photoUri) return null;
+
+  // Handle the photo URI based on platform
+  const imageUri = Platform.select({
+    ios: photoUri,
+    android: photoUri.startsWith('file://') ? photoUri : `file://${photoUri}`,
+  });
 
   return (
     <KeyboardAvoidingView
@@ -75,18 +94,24 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
         <View style={styles.container}>
           <View style={styles.photoContainer}>
             <Image
-              source={{ uri: `file://${photoUri}` }}
+              source={{uri: imageUri}}
               style={styles.photoPreview}
               resizeMode="contain"
             />
+            {isLoading && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color="#ffffff" />
+              </View>
+            )}
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Make:</Text>
             <TextInput
               style={styles.input}
               value={make}
-              onChangeText={setMake}
+              onChangeText={onMakeChange}
               placeholder="Enter car make"
+              editable={!isLoading}
             />
           </View>
           <View style={styles.infoRow}>
@@ -94,8 +119,9 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
             <TextInput
               style={styles.input}
               value={model}
-              onChangeText={setModel}
+              onChangeText={onModelChange}
               placeholder="Enter car model"
+              editable={!isLoading}
             />
           </View>
           <View style={styles.yearContainer}>
@@ -104,15 +130,22 @@ export const PhotoDisplay: React.FC<PhotoDisplayProps> = ({ photoUri }) => {
               <TextInput
                 style={[styles.input, styles.yearInput]}
                 value={year}
-                onChangeText={setYear}
+                onChangeText={onYearChange}
                 placeholder="Enter release year"
                 keyboardType="numeric"
                 maxLength={4}
+                editable={!isLoading}
               />
             </View>
           </View>
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch} disabled={isLoading}>
-            {isLoading ? (
+          <TouchableOpacity
+            style={[
+              styles.searchButton,
+              (isLoading || isSearching) && styles.disabledButton,
+            ]}
+            onPress={handleSearch}
+            disabled={isLoading || isSearching}>
+            {isSearching ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.searchButtonText}>Search</Text>
@@ -150,6 +183,16 @@ const styles = StyleSheet.create({
   photoPreview: {
     width: '100%',
     height: '100%',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoRow: {
     flexDirection: 'row',
@@ -207,6 +250,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
     width: '100%',
     alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#cccccc',
   },
   searchButtonText: {
     color: 'white',

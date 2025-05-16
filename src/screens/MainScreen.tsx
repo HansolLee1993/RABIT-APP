@@ -6,28 +6,50 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import {MainButton} from '../components/MainButton';
 import {PhotoDisplay} from '../components/PhotoDisplay';
 import {CameraModal} from '../components/CameraModal';
-import {launchImageLibrary} from 'react-native-image-picker';
+import {uploadImage} from '../utils/uploadImage';
 
 export const MainScreen: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    make: '',
+    model: '',
+    year: '',
+  });
 
-  const handleImageUpload = () => {
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 1,
-      },
-      response => {
-        if (response.assets && response.assets[0]?.uri) {
-          setPhoto(response.assets[0].uri);
+  const handleImageUpload = async () => {
+    console.log('handleImageUpload started');
+    setIsUploading(true);
+
+    try {
+      const result = await uploadImage();
+
+      if (result.success && result.uri) {
+        console.log('Upload successful, setting photo URI:', result.uri);
+        setPhoto(result.uri);
+        if (result.data) {
+          const {make, model, year} = result.data;
+          console.log(`Make: ${make}, Model: ${model}, Year: ${year}`);
+          setFormData({
+            make: make || '',
+            model: model || '',
+            year: year || '',
+          });
         }
-      },
-    );
+      } else {
+        console.warn('Upload failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handlePhotoCapture = (photoPath: string) => {
@@ -37,6 +59,18 @@ export const MainScreen: React.FC = () => {
 
   const handleClear = () => {
     setPhoto(null);
+    setFormData({
+      make: '',
+      model: '',
+      year: '',
+    });
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   return (
@@ -51,17 +85,38 @@ export const MainScreen: React.FC = () => {
             <MainButton
               title="Open Camera"
               onPress={() => setShowCamera(true)}
+              disabled={isUploading}
             />
-            <MainButton title="Upload Image" onPress={handleImageUpload} />
+            <MainButton
+              title={isUploading ? 'Uploading...' : 'Upload Image'}
+              onPress={handleImageUpload}
+              disabled={isUploading}
+            />
             {photo && (
               <MainButton
                 title="Clear"
                 onPress={handleClear}
                 style={styles.clearButton}
+                disabled={isUploading}
               />
             )}
           </View>
-          <PhotoDisplay photoUri={photo} />
+          {isUploading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#2196F3" />
+              <Text style={styles.loadingText}>Analyzing image...</Text>
+            </View>
+          )}
+          <PhotoDisplay
+            photoUri={photo}
+            make={formData.make}
+            model={formData.model}
+            year={formData.year}
+            onMakeChange={value => handleFormChange('make', value)}
+            onModelChange={value => handleFormChange('model', value)}
+            onYearChange={value => handleFormChange('year', value)}
+            isLoading={isUploading}
+          />
         </View>
         <CameraModal
           visible={showCamera}
@@ -113,5 +168,30 @@ const styles = StyleSheet.create({
   clearButton: {
     backgroundColor: '#ff4444',
     minWidth: 100,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{translateX: -75}, {translateY: -50}],
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
+    padding: 20,
+    width: 150,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#2196F3',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
